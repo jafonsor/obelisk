@@ -175,7 +175,8 @@ in rec {
   serverModules = {
     mkBaseEc2 = { hostName, routeHost, enableHttps, adminEmail, ... }: {...}: {
       imports = [
-        (pkgs.path + /nixos/modules/virtualisation/amazon-image.nix)
+        # (pkgs.path + /nixos/modules/virtualisation/amazon-image.nix)
+        pkgs.path
       ];
       networking = {
         inherit hostName;
