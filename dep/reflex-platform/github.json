@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "jafonsor",
   "repo": "reflex-platform",
-  "branch": "release/0.7.0.0",
+  "branch": "raspberrypi64",
   "private": false,
-  "rev": "27a7851a780ff21472d85f9a02fb84635ef9027a",
-  "sha256": "1m4zlw91dpjlbdchjyxhvhv3k7lilm0qa17dhhww868xxc27sann"
+  "rev": "5312e5edaf8bfe4099edb315671f47804213f4cc",
+  "sha256": "0n8md06yxx13s3wsx7khyaby6rammx80clvfl7b9khhx9smb6087"
 }

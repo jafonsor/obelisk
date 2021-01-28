@@ -290,6 +290,8 @@ in rec {
 
                 shells-ghc = builtins.attrNames (self.predefinedPackages // self.shellPackages);
 
+                shells-ghcLinuxAarch64 = builtins.attrNames (self.predefinedPackages // self.shellPackages);
+
                 shells-ghcjs = [
                   self.frontendName
                   self.commonName
@@ -318,6 +320,7 @@ in rec {
                       lib.filter (x: lib.hasAttr x self.combinedPackages) self.shells-ghcSavedSplices;
                     ghc = lib.filter (x: lib.hasAttr x self.combinedPackages) self.shells-ghc;
                     ghcjs = lib.filter (x: lib.hasAttr x self.combinedPackages) self.shells-ghcjs;
+                    ghcLinuxAarch64 = lib.filter (x: lib.hasAttr x self.combinedPackages) self.shells-ghcLinuxAarch64;
                   };
                   android = self.__androidWithConfig (self.base + "/config");
                   ios = self.__iosWithConfig (self.base + "/config");
@@ -346,6 +349,16 @@ in rec {
         version;
       linuxExe = serverOn (projectOut { system = "x86_64-linux"; });
       dummyVersion = "Version number is only available for deployments";
+
+      raspberryPi64Exe-projectInst = projectOut { system = "aarch64-unknown-linux-gnu"; };
+      raspberryPi64Exe = version: serverExe
+        raspberryPi64Exe-projectInst.ghcLinuxAarch64.backend
+        mainProjectOut.ghcjs.frontend
+        raspberryPi64Exe-projectInst.passthru.staticFiles
+        raspberryPi64Exe-projectInst.passthru.__closureCompilerOptimizationLevel
+        version;
+
+
     in mainProjectOut // {
       __unstable__.profiledObRun = let
         profiled = projectOut { inherit system; enableLibraryProfiling = true; };
@@ -381,6 +394,10 @@ in rec {
 
       linuxExeConfigurable = linuxExe;
       linuxExe = linuxExe dummyVersion;
+
+      raspberryPi64ExeConfigurable = linuxExe;
+      raspberryPi64Exe = raspberryPi64Exe dummyVersion;
+
       exe = serverOn mainProjectOut dummyVersion;
       server = args@{ hostName, adminEmail, routeHost, enableHttps, version, module ? serverModules.mkBaseEc2 }:
         server (args // { exe = linuxExe version; });
