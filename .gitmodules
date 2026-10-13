@@ -1,7 +1,8 @@
 [submodule "deps/nix-haskell"]
 	path = deps/nix-haskell
-	url = https://github.com/reflex-frp/nix-haskell.git
+	url = https://github.com/jafonsor/nix-haskell.git
 	shallow = true
+	branch = macos
 [submodule "deps/style.hs"]
 	path = deps/style.hs
 	url = https://github.com/obsidiansystems/style.hs
