@@ -57,10 +57,16 @@ while true; do
     cabal run backend -O0 "${DEV_GHC_OPTIONS[@]}" "$@" &
   PID=$!
 
-  # Watch for source file changes.
-  inotifywait -r -e modify,create,delete,move \
-    --include '\.(hs|cabal|project)$' \
-    backend common frontend 2>/dev/null &
+  # Watch for source file changes: inotifywait on Linux, fswatch elsewhere
+  # (macOS). Both exit after the first matching event.
+  if command -v inotifywait >/dev/null 2>&1; then
+    inotifywait -r -e modify,create,delete,move \
+      --include '\.(hs|cabal|project)$' \
+      backend common frontend 2>/dev/null &
+  else
+    fswatch -1 -r -E -e '.*' -i '\.(hs|cabal|project)$' \
+      backend common frontend >/dev/null 2>&1 &
+  fi
   INOTIFY_PID=$!
 
   # Also allow manual restart by pressing Enter (when a terminal is attached).

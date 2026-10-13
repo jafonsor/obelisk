@@ -365,7 +365,10 @@ in {
     shell.nativeBuildInputs = [
       (pkgs.writeShellApplication {
         name = "ob-run";
-        runtimeInputs = [ pkgs.inotify-tools ];
+        # inotify-tools is Linux-only; ob-run falls back to fswatch elsewhere.
+        runtimeInputs = [
+          (if pkgs.stdenv.hostPlatform.isLinux then pkgs.inotify-tools else pkgs.fswatch)
+        ];
         text = builtins.readFile ../scripts/ob-run;
       })
       (pkgs.writeShellApplication {
@@ -388,7 +391,8 @@ in {
       })
       (pkgs.writeShellApplication {
         name = "ob-init";
-        runtimeInputs = [ pkgs.git ];
+        # GNU sed: ob-init uses `sed -i` without a suffix, which BSD sed rejects.
+        runtimeInputs = [ pkgs.git pkgs.gnused ];
         text = builtins.readFile ../scripts/ob-init;
       })
     ];
