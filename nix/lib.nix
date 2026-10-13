@@ -179,7 +179,10 @@ in rec {
               ${if compressedStatic != null && compressedStatic != {} then ''ln -sf ${compressedStatic} ${dataDir}/static.assets'' else ""}
             '';
             frontend.components.library.postInstall = ''
-              for datadir in $data/share/*/*/frontend-*; do
+              # haskell.nix only splits off a data output on some platforms
+              # (not on darwin), and the data dir sits one or two levels below share/.
+              for datadir in ''${data:-$out}/share/*/frontend-* ''${data:-$out}/share/*/*/frontend-*; do
+                [ -d "$datadir" ] || continue
                 ${if static != null && static != {} then ''ln -sf ${static} "$datadir/static"'' else ""}
                 ${if compressedStatic != null && compressedStatic != {} then ''ln -sf ${compressedStatic} "$datadir/static.assets"'' else ""}
               done
@@ -228,7 +231,10 @@ in rec {
               ${if compressedFrontendJs != null && compressedFrontendJs != {} then ''ln -sf ${compressedFrontendJs} ${dataDir}/frontend.jsexe.assets'' else ""}
             '';
             backend.components.library.postInstall = ''
-              for datadir in $data/share/*/*/backend-*; do
+              # haskell.nix only splits off a data output on some platforms
+              # (not on darwin), and the data dir sits one or two levels below share/.
+              for datadir in ''${data:-$out}/share/*/backend-* ''${data:-$out}/share/*/*/backend-*; do
+                [ -d "$datadir" ] || continue
                 ${if static != null && static != {} then ''ln -sf ${static} "$datadir/static"'' else ""}
                 ${if compressedStatic != null && compressedStatic != {} then ''ln -sf ${compressedStatic} "$datadir/static.assets"'' else ""}
                 ${if frontendJs != null && frontendJs != {} then ''ln -sf ${frontendJs} "$datadir/frontend.jsexe"'' else ""}
