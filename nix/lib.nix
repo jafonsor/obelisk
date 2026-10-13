@@ -50,9 +50,11 @@ in rec {
   };
 
   # Vendored browser WASI shim for WASM frontend.
-  wasi-shim = builtins.fetchTarball {
+  # fetchzip unpacks in the sandbox, so the hash does not depend on the
+  # evaluating Nix's builtin tarball unpacker (which differs on Nix < 2.27).
+  wasi-shim = pkgs.fetchzip {
     url = "https://registry.npmjs.org/@bjorn3/browser_wasi_shim/-/browser_wasi_shim-0.4.2.tgz";
-    sha256 = "0wha3xhra6mb6jsfzw7al5pllgd1iyzkxzl9m9110wj5as9rkwlm";
+    hash = "sha256-lfKZk1ZFchBCqon+Pr+PoT1Kb6Hq8O+0NKsalWEfCnI=";
   };
 
   # Keep only overrides whose package name exists in the project,
