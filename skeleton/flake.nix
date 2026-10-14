@@ -19,13 +19,15 @@
 
       packages = eachSystem (system:
         let project = import ./default.nix { inherit system inputs; };
-            release = import ./release.nix { inherit system inputs; };
         in rec {
-          inherit release;
-
           default = haskell-nix;
           haskell-nix = project.haskell-nix.serverExe.wasm;
           nixpkgs = project.nixpkgs.serverExe.js;
+        }
+        # release.nix is obelisk's own test matrix: it imports obelisk's nix/
+        # by relative path, so ob-init leaves it out of scaffolded projects.
+        // nixpkgs.lib.optionalAttrs (builtins.pathExists ./release.nix) {
+          release = import ./release.nix { inherit system inputs; };
         });
 
       devShells = eachSystem (system:

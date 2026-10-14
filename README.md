@@ -115,7 +115,6 @@ my-app/
   inputs.nix           # Dependency sources, from deps/ and flake.lock
   default.nix          # Nix entry point
   shell.nix            # Nix shell entry point
-  release.nix          # Release matrix (every driver and frontend target)
   flake.nix            # Flake entry point (optional)
 ```
 

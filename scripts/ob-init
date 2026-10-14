@@ -151,6 +151,10 @@ chmod -R u+w "$DIR"
 rm -rf "$DIR"/result "$DIR"/result-* "$DIR"/dist-newstyle "$DIR"/dist-wasm \
   "$DIR"/dist-js "$DIR"/.ghc.environment.* "$DIR"/ghcid-output.txt
 
+# release.nix is obelisk's test matrix for the skeleton: it imports obelisk's
+# nix/ by relative path, which does not exist in a scaffolded project.
+rm -f "$DIR/release.nix"
+
 # Rename the project in project.nix.
 sed -i "s/name = \"obelisk-skeleton\";/name = \"${NAME}\";/" "$DIR/project.nix"
 
