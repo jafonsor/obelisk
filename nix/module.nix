@@ -395,7 +395,10 @@ in {
         runtimeInputs = [ pkgs.git pkgs.gnused ];
         text = builtins.readFile ../scripts/ob-init;
       })
-    ];
+    ]
+    # The darwin stdenv points DEVELOPER_DIR at nix's Apple SDK, and macOS's
+    # /usr/bin/git is a shim that follows it ("tool 'git' not found").
+    ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin pkgs.git;
 
     shell.shellHook = ''
       export OBELISK_WASI_SHIM="${obeliskLib.wasi-shim}"
@@ -405,42 +408,48 @@ in {
       # skeleton/ alone, so ob-init cannot derive obelisk from its parent.
       export OBELISK_SRC="${toString obeliskLib.src}"
 
-      echo ""
-      echo "=== ob-run ==="
-      echo ""
-      ob-run --help
-      echo ""
-      echo "=== ob-repl ==="
-      echo ""
-      ob-repl --help
-      echo ""
-      echo "=== ob-watch ==="
-      echo ""
-      ob-watch --help
-      echo ""
-      echo "=== ob-hoogle ==="
-      echo ""
-      ob-hoogle --help
-      echo ""
-      echo "=== ob-deploy ==="
-      echo ""
-      ob-deploy --help
-      echo ""
-      echo "=== ob-init ==="
-      echo ""
-      ob-init --help
-      echo ""
+      # The rest is for a person at a prompt. Non-interactive shells such as
+      # direnv's (via `nix print-dev-env`) or `nix develop -c` skip it: the
+      # help is noise there, and direnv exports the environment from its
+      # own EXIT trap, which the hoogle trap below would replace.
+      if [[ $- == *i* ]]; then
+        echo ""
+        echo "=== ob-run ==="
+        echo ""
+        ob-run --help
+        echo ""
+        echo "=== ob-repl ==="
+        echo ""
+        ob-repl --help
+        echo ""
+        echo "=== ob-watch ==="
+        echo ""
+        ob-watch --help
+        echo ""
+        echo "=== ob-hoogle ==="
+        echo ""
+        ob-hoogle --help
+        echo ""
+        echo "=== ob-deploy ==="
+        echo ""
+        ob-deploy --help
+        echo ""
+        echo "=== ob-init ==="
+        echo ""
+        ob-init --help
+        echo ""
 
-      export HOOGLE_PIDFILE="''${TMPDIR:-/tmp}/ob-hoogle.pid"
-      HOOGLE_REFSFILE="''${TMPDIR:-/tmp}/ob-hoogle.refs"
-      echo $$ >> "$HOOGLE_REFSFILE"
-      trap '
-        sed -i "/^'$$'$/d" "$HOOGLE_REFSFILE"
-        if [ ! -s "$HOOGLE_REFSFILE" ] && [ -f "$HOOGLE_PIDFILE" ]; then
-          kill "$(cat "$HOOGLE_PIDFILE")" 2>/dev/null
-          rm -f "$HOOGLE_PIDFILE" "$HOOGLE_REFSFILE"
-        fi
-      ' EXIT
+        export HOOGLE_PIDFILE="''${TMPDIR:-/tmp}/ob-hoogle.pid"
+        HOOGLE_REFSFILE="''${TMPDIR:-/tmp}/ob-hoogle.refs"
+        echo $$ >> "$HOOGLE_REFSFILE"
+        trap '
+          sed -i "/^'$$'$/d" "$HOOGLE_REFSFILE"
+          if [ ! -s "$HOOGLE_REFSFILE" ] && [ -f "$HOOGLE_PIDFILE" ]; then
+            kill "$(cat "$HOOGLE_PIDFILE")" 2>/dev/null
+            rm -f "$HOOGLE_PIDFILE" "$HOOGLE_REFSFILE"
+          fi
+        ' EXIT
+      fi
     '';
   };
 }
