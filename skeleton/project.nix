@@ -1,16 +1,30 @@
 { pkgs, obeliskLib, nix-haskell-compilers, ... }:
 
-{
+let
+    # A module whose config applies on darwin only. The system is config, so
+    # it cannot choose what is imported; it can only guard what an import
+    # defines.
+    onDarwin = module: { config, lib, pkgs, ... }@args: {
+      config = lib.mkIf (lib.hasSuffix "-darwin" config.system)
+        (module args).config;
+    };
+
+in {
 
   # The nixpkgs driver has no wasm compiler of its own. The ghc-wasm-meta
-  # bindist gives it one. The haskell.nix driver builds its own, so the
-  # bindist is scoped to the driver that needs it. The series matches that
-  # driver's own compiler.
+  # bindist gives it one. The haskell.nix driver builds its own, but that
+  # compiler is not in the binary caches for darwin and builds from source
+  # for hours, so on darwin it takes the bindist too. Each series matches
+  # that driver's own compiler.
   imports = [
     (import "${nix-haskell-compilers}/ghc-wasm-meta" {
       flavour = "9.12";
       drivers = [ "nixpkgs" ];
     })
+    (onDarwin (import "${nix-haskell-compilers}/ghc-wasm-meta" {
+      flavour = "9.14";
+      drivers = [ "haskell-nix" ];
+    }))
   ];
 
   name = "obelisk-skeleton";
