@@ -39,7 +39,13 @@ let
       ];
     };
 
-    haskellNixWasmMeta = variant [ (wasmMeta "haskell-nix") ];
+    # On darwin, project.nix already gives the haskell.nix driver the bindist
+    # (its own compiler is not cached there), so the stock project is this
+    # variant; importing the bindist again would define it twice.
+    haskellNixWasmMeta =
+      if lib.hasSuffix "-darwin" system
+      then stock
+      else variant [ (wasmMeta "haskell-nix") ];
 
     # The one matrix of driver and wasm-meta. A cell is a project, the driver
     # that builds it, and the path it takes in every result set.
