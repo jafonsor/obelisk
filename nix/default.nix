@@ -59,6 +59,32 @@ in lib // {
         proj = eval.haskell-nix.project;
         targets = [ "wasm" "js" ];
         defaultTarget = "wasm";
+      } // {
+        # A hack, for the dev shell only: the shell comes from a copy of the
+        # project whose backend library does not link the assets into its
+        # data dir (obelisk.backend.linkAssets, the preBuild/postInstall of
+        # lib.nix's backendDataOverride).
+        #
+        # Building the shell evaluates the backend's derivation (shellFor
+        # walks it for dependencies), haskell.nix checks each hook for
+        # emptiness, and nix strings are strict, so the hook's asset paths
+        # are forced. Those assets are listed from the built frontend at
+        # evaluation time (assets.nix reads the directory), so every
+        # frontend change made loading the shell compile the production
+        # frontend, only to throw it away. Overriding the hooks with
+        # mkForce is not enough: the module system still evaluates the
+        # definitions it overrides, so the hooks must not be defined.
+        #
+        # This only works because nix does not build the backend in
+        # development: ob-run builds it with cabal and links the assets
+        # itself. Anything that builds the backend with nix (exe,
+        # serverExe, containerImage) must keep using `proj`, or it would
+        # miss what those hooks do. The hooks add nothing to the shell's
+        # dependencies, which come from the components' depends, inputs and
+        # tools.
+        shell = (eval.haskell-nix.project.override {
+          obelisk.backend.linkAssets = false;
+        }).shell;
       };
 
       nixpkgs = outputs {

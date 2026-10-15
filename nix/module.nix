@@ -110,6 +110,18 @@ in {
       example = "nixpkgs";
     };
 
+    backend.linkAssets = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      internal = true;
+      description = ''
+        Whether the haskell.nix backend library links the static and
+        frontend assets into its data dir (preBuild/postInstall). Off only
+        for the dev shell's copy of the project; see the `shell` hack in
+        nix/default.nix.
+      '';
+    };
+
     frontend.target = lib.mkOption {
       type = lib.types.enum [ "js" "wasm" ];
       default = perDriver { haskell-nix = "wasm"; nixpkgs = "js"; };
@@ -313,14 +325,14 @@ in {
     haskell-nix.overrides = [
       obeliskLib.buildTypeOverride.haskell-nix
       (obeliskLib.frontendDataOverride.haskell-nix { static = hashedStatic; compressedStatic = static; })
+      (obeliskLib.staticManifestOverride.haskell-nix { static = rawStatic; })
+    ] ++ lib.optional config.obelisk.backend.linkAssets
       (obeliskLib.backendDataOverride.haskell-nix {
         static = hashedStatic;
         compressedStatic = static;
         frontendJs = frontendOutput.optimized;
         inherit compressedFrontendJs;
-      })
-      (obeliskLib.staticManifestOverride.haskell-nix { static = rawStatic; })
-    ];
+      });
 
     nixpkgs.packages = lib.mkMerge [
       obeliskLib.buildTypeOverride.nixpkgs
